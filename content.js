@@ -500,13 +500,17 @@
   // Analyze form with Gemini API
   async function analyzeWithGemini(formData, apiKey, progressUpdater) {
     const endpoint =
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-thinking-exp-01-21:generateContent";
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
     const questionChunks = chunkQuestions(formData.questions);
     const totalChunks = questionChunks.length;
     const aggregatedAnswers = {};
 
     for (let idx = 0; idx < totalChunks; idx++) {
+      if (idx > 0) {
+        // Add delay between requests to avoid rate limits
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
       const { startIndex, questions } = questionChunks[idx];
       const formattedQuestions = questions
         .map((question, localIdx) =>

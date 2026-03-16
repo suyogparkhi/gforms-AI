@@ -204,12 +204,13 @@ function showStatus(message, type) {
 
 async function analyzeQuestions(questions, apiKey) {
   const endpoint =
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=" +
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" +
     apiKey;
 
   const contents = await Promise.all(
     questions.map(async (q) => {
       const contentBlock = {
+        role: "user",
         parts: [{ text: q.question || "No question text." }],
       };
 
@@ -248,9 +249,9 @@ async function analyzeQuestions(questions, apiKey) {
 
 async function analyzeCourseraQuiz(quizContent, apiKey) {
   const endpoint =
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-001:generateContent?key=" +
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" +
     apiKey;
-  const MAX_QUESTIONS_PER_REQUEST = 10;
+  const MAX_QUESTIONS_PER_REQUEST = 5;
   const quizEntries = Object.entries(quizContent);
   const totalChunks =
     Math.ceil(quizEntries.length / MAX_QUESTIONS_PER_REQUEST) || 1;
@@ -310,6 +311,10 @@ async function analyzeCourseraQuiz(quizContent, apiKey) {
       chunkIndex < quizEntries.length;
       chunkIndex += MAX_QUESTIONS_PER_REQUEST
     ) {
+      if (chunkIndex > 0) {
+        // Add delay between requests to avoid rate limits
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
       const chunk = quizEntries.slice(
         chunkIndex,
         chunkIndex + MAX_QUESTIONS_PER_REQUEST
